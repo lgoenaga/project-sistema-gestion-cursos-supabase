@@ -1,0 +1,167 @@
+import { useEffect, useState } from "react";
+
+import MainLayout from "../layouts/MainLayout";
+
+import PageTitle from "../components/PageTitle";
+import PrimaryButton from "../components/PrimaryButton";
+import CourseTable from "../components/CourseTable";
+import CourseForm from "../components/CourseForm";
+import ConfirmDialog from "../components/ConfirmDialog";
+
+import {
+  getCourses,
+  createCourse,
+  updateCourse,
+  deleteCourse,
+} from "../services/courseService";
+
+function Courses() {
+  const [courses, setCourses] = useState([]);
+  const [search, setSearch] = useState("");
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState(null);
+
+  const [courseToDelete, setCourseToDelete] = useState(null);
+
+  useEffect(() => {
+    loadCourses();
+  }, []);
+
+  async function loadCourses() {
+    try {
+      const data = await getCourses();
+      setCourses(data);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  function handleCreate() {
+    setSelectedCourse(null);
+    setIsModalOpen(true);
+  }
+
+  function handleEdit(course) {
+    setSelectedCourse(course);
+    setIsModalOpen(true);
+  }
+
+  async function handleSave(courseData) {
+    try {
+      if (selectedCourse) {
+        await updateCourse(
+          selectedCourse.id,
+          courseData
+        );
+      } else {
+        await createCourse(courseData);
+      }
+
+      await loadCourses();
+
+      setIsModalOpen(false);
+      setSelectedCourse(null);
+
+    } catch (error) {
+      console.error(error);
+      alert("Error al guardar el curso");
+    }
+  }
+
+  function handleDelete(course) {
+    setCourseToDelete(course);
+  }
+
+  async function confirmDelete() {
+    try {
+      await deleteCourse(courseToDelete.id);
+
+      await loadCourses();
+
+      setCourseToDelete(null);
+
+    } catch (error) {
+      console.error(error);
+
+      alert(
+        "No fue posible eliminar el curso. Puede que tenga matrículas asociadas."
+      );
+    }
+  }
+
+  const filteredCourses = courses.filter(
+    (course) =>
+      course.code
+        ?.toLowerCase()
+        .includes(search.toLowerCase()) ||
+
+      course.name
+        ?.toLowerCase()
+        .includes(search.toLowerCase()) ||
+
+      course.description
+        ?.toLowerCase()
+        .includes(search.toLowerCase())
+  );
+
+  return (
+    <MainLayout>
+      <div className="flex justify-between items-center mb-6">
+        <PageTitle
+          title="Cursos"
+          subtitle="Gestión de cursos registrados"
+        />
+
+        <PrimaryButton onClick={handleCreate}>
+          Nuevo Curso
+        </PrimaryButton>
+      </div>
+
+      <input
+        type="text"
+        placeholder="Buscar curso..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        className="
+          w-full
+          bg-white
+          rounded-lg
+          border
+          p-3
+          mb-6
+        "
+      />
+
+      <CourseTable
+        courses={filteredCourses}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+      />
+
+      <CourseForm
+        isOpen={isModalOpen}
+        course={selectedCourse}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedCourse(null);
+        }}
+        onSave={handleSave}
+      />
+
+      <ConfirmDialog
+        isOpen={!!courseToDelete}
+        title="Eliminar curso"
+        message={
+          courseToDelete
+            ? `¿Desea eliminar el curso ${courseToDelete.name}?`
+            : ""
+        }
+        onCancel={() => setCourseToDelete(null)}
+        onConfirm={confirmDelete}
+      />
+    </MainLayout>
+  );
+}
+
+export default Courses;
