@@ -8,6 +8,7 @@ export async function getDashboardStats() {
     activeResult,
     completedResult,
     cancelledResult,
+    popularCoursesResult,
   ] = await Promise.all([
     supabase.from("students").select("*", {
       count: "exact",
@@ -47,7 +48,20 @@ export async function getDashboardStats() {
         head: true,
       })
       .eq("status", "CANCELLED"),
+
+    supabase.from("courses").select(`
+      name,
+      enrollments (count)
+    `),
   ]);
+
+  const popularCourses = (popularCoursesResult.data ?? [])
+    .map((course) => ({
+      name: course.name,
+      count: course.enrollments?.[0]?.count ?? 0,
+    }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 4);
 
   return {
     totalStudents: studentsResult.count || 0,
@@ -56,5 +70,6 @@ export async function getDashboardStats() {
     activeEnrollments: activeResult.count || 0,
     completedEnrollments: completedResult.count || 0,
     cancelledEnrollments: cancelledResult.count || 0,
+    popularCourses,
   };
 }
