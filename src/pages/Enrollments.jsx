@@ -7,6 +7,7 @@ import EmptyState from "../components/ui/EmptyState";
 import EnrollmentTable from "../components/tables/EnrollmentTable";
 import EnrollmentForm from "../components/forms/EnrollmentForm";
 import ConfirmDialog from "../components/ui/ConfirmDialog";
+import { useModalAccessibility } from "../hooks/useModalAccessibility";
 
 import {
   getEnrollments,
@@ -131,6 +132,15 @@ function Enrollments() {
     setSelectedEnrollment(enrollment);
   }
 
+  function closeStatusModal() {
+    setSelectedEnrollment(null);
+  }
+
+  const statusModalRef = useModalAccessibility(
+    !!selectedEnrollment,
+    closeStatusModal,
+  );
+
   function handleCancelForm() {
     setShowCancelConfirm(true);
   }
@@ -215,6 +225,7 @@ function Enrollments() {
       )}
 
       <EnrollmentForm
+        key={isModalOpen ? "open" : "closed"}
         isOpen={isModalOpen}
         students={students}
         courses={courses}
@@ -224,7 +235,10 @@ function Enrollments() {
 
       {selectedEnrollment && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md">
+          <div
+            ref={statusModalRef}
+            className="bg-white rounded-xl p-6 w-full max-w-md"
+          >
             <h2 className="text-xl font-bold mb-4">Cambiar Estado</h2>
 
             <select
@@ -246,7 +260,7 @@ function Enrollments() {
 
             <div className="flex justify-end gap-3">
               <button
-                onClick={() => setSelectedEnrollment(null)}
+                onClick={closeStatusModal}
                 className="px-4 py-2 border rounded-lg"
               >
                 Cancelar

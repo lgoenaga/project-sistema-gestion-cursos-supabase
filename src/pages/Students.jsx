@@ -146,6 +146,7 @@ function Students() {
       )}
 
       <StudentForm
+        key={`${selectedStudent?.id ?? "new"}-${isModalOpen}`}
         isOpen={isModalOpen}
         student={selectedStudent}
         onClose={handleCancelForm}

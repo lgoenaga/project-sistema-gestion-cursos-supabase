@@ -1,47 +1,37 @@
-import { useEffect, useState } from "react";
-
 import PrimaryButton from "../ui/PrimaryButton";
+import { useFormState } from "../../hooks/useFormState";
+import { useModalAccessibility } from "../../hooks/useModalAccessibility";
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE_REGEX = /^\d{7,15}$/;
 
 function StudentForm({ isOpen, student, onClose, onSave }) {
-  const [formData, setFormData] = useState({
-    first_name: "",
-    last_name: "",
-    email: "",
-    phone: "",
-  });
-
-  useEffect(() => {
-    if (student) {
-      setFormData(student);
-    } else {
-      setFormData({
-        first_name: "",
-        last_name: "",
-        email: "",
-        phone: "",
-      });
-    }
-  }, [student]);
+  const { formData, handleChange } = useFormState(
+    student ?? { first_name: "", last_name: "", email: "", phone: "" },
+  );
+  const modalRef = useModalAccessibility(isOpen, onClose);
 
   if (!isOpen) return null;
 
-  function handleChange(event) {
-    const { name, value } = event.target;
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  }
-
   function handleSubmit(event) {
     event.preventDefault();
+
+    if (!EMAIL_REGEX.test(formData.email)) {
+      alert("Ingrese un correo electrónico válido.");
+      return;
+    }
+
+    if (!PHONE_REGEX.test(formData.phone)) {
+      alert("Ingrese un número de celular válido (solo dígitos).");
+      return;
+    }
+
     onSave(formData);
   }
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl w-full max-w-lg p-6">
+      <div ref={modalRef} className="bg-white rounded-xl w-full max-w-lg p-6">
         <h2 className="text-2xl font-bold mb-6">
           {student ? "Editar Estudiante" : "Nuevo Estudiante"}
         </h2>

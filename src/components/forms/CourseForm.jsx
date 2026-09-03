@@ -1,39 +1,22 @@
-import { useEffect, useState } from "react";
 import PrimaryButton from "../ui/PrimaryButton";
+import { useFormState } from "../../hooks/useFormState";
+import { useModalAccessibility } from "../../hooks/useModalAccessibility";
 
 function CourseForm({ isOpen, course, onClose, onSave }) {
-  const [formData, setFormData] = useState({
-    code: "",
-    name: "",
-    description: "",
-    max_capacity: "",
-  });
-
-  useEffect(() => {
-    if (course) {
-      setFormData(course);
-    } else {
-      setFormData({
-        code: "",
-        name: "",
-        description: "",
-        max_capacity: "",
-      });
-    }
-  }, [course]);
+  const { formData, handleChange } = useFormState(
+    course ?? { code: "", name: "", description: "", max_capacity: "" },
+  );
+  const modalRef = useModalAccessibility(isOpen, onClose);
 
   if (!isOpen) return null;
 
-  function handleChange(event) {
-    const { name, value } = event.target;
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  }
   function handleSubmit(event) {
     event.preventDefault();
+
+    if (Number(formData.max_capacity) <= 0) {
+      alert("La capacidad máxima debe ser mayor a 0.");
+      return;
+    }
 
     onSave({
       ...formData,
@@ -43,7 +26,7 @@ function CourseForm({ isOpen, course, onClose, onSave }) {
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl w-full max-w-lg p-6">
+      <div ref={modalRef} className="bg-white rounded-xl w-full max-w-lg p-6">
         <h2 className="text-2xl font-bold mb-6">
           {course ? "Editar Curso" : "Nuevo Curso"}
         </h2>

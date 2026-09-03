@@ -1,3 +1,5 @@
+import { useModalAccessibility } from "../../hooks/useModalAccessibility";
+
 function ConfirmDialog({
   isOpen,
   title,
@@ -7,6 +9,8 @@ function ConfirmDialog({
   confirmLabel = "Eliminar",
   confirmColor = "red",
 }) {
+  const modalRef = useModalAccessibility(isOpen, onCancel);
+
   if (!isOpen) return null;
 
   const confirmButtonClass =
@@ -16,7 +20,7 @@ function ConfirmDialog({
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl p-6 w-full max-w-md">
+      <div ref={modalRef} className="bg-white rounded-xl p-6 w-full max-w-md">
         <h2 className="text-xl font-bold mb-4">{title}</h2>
 
         <p className="text-slate-600 mb-6">{message}</p>

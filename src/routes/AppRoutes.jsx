@@ -4,6 +4,7 @@ import Dashboard from "../pages/Dashboard";
 import Students from "../pages/Students";
 import Courses from "../pages/Courses";
 import Enrollments from "../pages/Enrollments";
+import NotFound from "../pages/NotFound";
 
 function AppRoutes() {
   return (
@@ -12,6 +13,7 @@ function AppRoutes() {
       <Route path="/students" element={<Students />} />
       <Route path="/courses" element={<Courses />} />
       <Route path="/enrollments" element={<Enrollments />} />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }

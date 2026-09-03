@@ -1,35 +1,17 @@
-import { useEffect, useState } from "react";
 import PrimaryButton from "../ui/PrimaryButton";
+import { useFormState } from "../../hooks/useFormState";
+import { useModalAccessibility } from "../../hooks/useModalAccessibility";
 
 function EnrollmentForm({ isOpen, onClose, onSave, students, courses }) {
-  const [formData, setFormData] = useState({
+  const { formData, handleChange } = useFormState({
     student_id: "",
     course_id: "",
     status: "ACTIVE",
     enrollment_date: new Date().toISOString().split("T")[0],
   });
-
-  useEffect(() => {
-    if (!isOpen) return;
-
-    setFormData({
-      student_id: "",
-      course_id: "",
-      status: "ACTIVE",
-      enrollment_date: new Date().toISOString().split("T")[0],
-    });
-  }, [isOpen]);
+  const modalRef = useModalAccessibility(isOpen, onClose);
 
   if (!isOpen) return null;
-
-  function handleChange(event) {
-    const { name, value } = event.target;
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  }
 
   function handleSubmit(event) {
     event.preventDefault();
@@ -38,7 +20,7 @@ function EnrollmentForm({ isOpen, onClose, onSave, students, courses }) {
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl w-full max-w-lg p-6">
+      <div ref={modalRef} className="bg-white rounded-xl w-full max-w-lg p-6">
         <h2 className="text-2xl font-bold mb-6">Nueva Matrícula</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">

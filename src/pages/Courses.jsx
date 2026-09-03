@@ -149,6 +149,7 @@ function Courses() {
       )}
 
       <CourseForm
+        key={`${selectedCourse?.id ?? "new"}-${isModalOpen}`}
         isOpen={isModalOpen}
         course={selectedCourse}
         onClose={handleCancelForm}
