@@ -1,20 +1,12 @@
 import { useEffect, useState } from "react";
-import PrimaryButton from "./PrimaryButton";
+import PrimaryButton from "../ui/PrimaryButton";
 
-function EnrollmentForm({
-  isOpen,
-  onClose,
-  onSave,
-  students,
-  courses,
-}) {
+function EnrollmentForm({ isOpen, onClose, onSave, students, courses }) {
   const [formData, setFormData] = useState({
     student_id: "",
     course_id: "",
     status: "ACTIVE",
-    enrollment_date: new Date()
-      .toISOString()
-      .split("T")[0],
+    enrollment_date: new Date().toISOString().split("T")[0],
   });
 
   useEffect(() => {
@@ -24,22 +16,20 @@ function EnrollmentForm({
       student_id: "",
       course_id: "",
       status: "ACTIVE",
-      enrollment_date: new Date()
-        .toISOString()
-        .split("T")[0],
+      enrollment_date: new Date().toISOString().split("T")[0],
     });
   }, [isOpen]);
 
   if (!isOpen) return null;
 
   function handleChange(event) {
-  const { name, value } = event.target;
+    const { name, value } = event.target;
 
-  setFormData((prev) => ({
-    ...prev,
-    [name]: value,
-  }));
-}
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  }
 
   function handleSubmit(event) {
     event.preventDefault();
@@ -49,16 +39,9 @@ function EnrollmentForm({
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
       <div className="bg-white rounded-xl w-full max-w-lg p-6">
+        <h2 className="text-2xl font-bold mb-6">Nueva Matrícula</h2>
 
-        <h2 className="text-2xl font-bold mb-6">
-          Nueva Matrícula
-        </h2>
-
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-4"
-        >
-
+        <form onSubmit={handleSubmit} className="space-y-4">
           <select
             name="student_id"
             value={formData.student_id}
@@ -66,15 +49,10 @@ function EnrollmentForm({
             className="w-full border rounded-lg p-3"
             required
           >
-            <option value="">
-              Seleccione estudiante
-            </option>
+            <option value="">Seleccione estudiante</option>
 
-            {students.map(student => (
-              <option
-                key={student.id}
-                value={student.id}
-              >
+            {students.map((student) => (
+              <option key={student.id} value={student.id}>
                 {student.first_name} {student.last_name}
               </option>
             ))}
@@ -87,15 +65,10 @@ function EnrollmentForm({
             className="w-full border rounded-lg p-3"
             required
           >
-            <option value="">
-              Seleccione curso
-            </option>
+            <option value="">Seleccione curso</option>
 
-            {courses.map(course => (
-              <option
-                key={course.id}
-                value={course.id}
-              >
+            {courses.map((course) => (
+              <option key={course.id} value={course.id}>
                 {course.name}
               </option>
             ))}
@@ -107,17 +80,11 @@ function EnrollmentForm({
             onChange={handleChange}
             className="w-full border rounded-lg p-3"
           >
-            <option value="ACTIVE">
-              ACTIVE
-            </option>
+            <option value="ACTIVE">ACTIVE</option>
 
-            <option value="COMPLETED">
-              COMPLETED
-            </option>
+            <option value="COMPLETED">COMPLETED</option>
 
-            <option value="CANCELLED">
-              CANCELLED
-            </option>
+            <option value="CANCELLED">CANCELLED</option>
           </select>
 
           <input
@@ -130,7 +97,6 @@ function EnrollmentForm({
           />
 
           <div className="flex justify-end gap-3">
-
             <button
               type="button"
               onClick={onClose}
@@ -139,14 +105,9 @@ function EnrollmentForm({
               Cancelar
             </button>
 
-            <PrimaryButton type="submit">
-              Guardar
-            </PrimaryButton>
-
+            <PrimaryButton type="submit">Guardar</PrimaryButton>
           </div>
-
         </form>
-
       </div>
     </div>
   );

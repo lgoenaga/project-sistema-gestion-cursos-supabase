@@ -2,11 +2,12 @@ import { useEffect, useState } from "react";
 
 import MainLayout from "../layouts/MainLayout";
 
-import PageTitle from "../components/PageTitle";
-import PrimaryButton from "../components/PrimaryButton";
-import CourseTable from "../components/CourseTable";
-import CourseForm from "../components/CourseForm";
-import ConfirmDialog from "../components/ConfirmDialog";
+import PageTitle from "../components/ui/PageTitle";
+import PrimaryButton from "../components/ui/PrimaryButton";
+import EmptyState from "../components/ui/EmptyState";
+import CourseTable from "../components/tables/CourseTable";
+import CourseForm from "../components/forms/CourseForm";
+import ConfirmDialog from "../components/ui/ConfirmDialog";
 
 import {
   getCourses,
@@ -23,6 +24,8 @@ function Courses() {
   const [selectedCourse, setSelectedCourse] = useState(null);
 
   const [courseToDelete, setCourseToDelete] = useState(null);
+  const [courseToSave, setCourseToSave] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     loadCourses();
@@ -34,6 +37,8 @@ function Courses() {
       setCourses(data);
     } catch (error) {
       console.error(error);
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -47,22 +52,23 @@ function Courses() {
     setIsModalOpen(true);
   }
 
-  async function handleSave(courseData) {
+  function handleSave(courseData) {
+    setCourseToSave(courseData);
+  }
+
+  async function confirmSave() {
     try {
       if (selectedCourse) {
-        await updateCourse(
-          selectedCourse.id,
-          courseData
-        );
+        await updateCourse(selectedCourse.id, courseToSave);
       } else {
-        await createCourse(courseData);
+        await createCourse(courseToSave);
       }
 
       await loadCourses();
 
+      setCourseToSave(null);
       setIsModalOpen(false);
       setSelectedCourse(null);
-
     } catch (error) {
       console.error(error);
       alert("Error al guardar el curso");
@@ -80,42 +86,28 @@ function Courses() {
       await loadCourses();
 
       setCourseToDelete(null);
-
     } catch (error) {
       console.error(error);
 
       alert(
-        "No fue posible eliminar el curso. Puede que tenga matrículas asociadas."
+        "No fue posible eliminar el curso. Puede que tenga matrículas asociadas.",
       );
     }
   }
 
   const filteredCourses = courses.filter(
     (course) =>
-      course.code
-        ?.toLowerCase()
-        .includes(search.toLowerCase()) ||
-
-      course.name
-        ?.toLowerCase()
-        .includes(search.toLowerCase()) ||
-
-      course.description
-        ?.toLowerCase()
-        .includes(search.toLowerCase())
+      course.code?.toLowerCase().includes(search.toLowerCase()) ||
+      course.name?.toLowerCase().includes(search.toLowerCase()) ||
+      course.description?.toLowerCase().includes(search.toLowerCase()),
   );
 
   return (
     <MainLayout>
       <div className="flex justify-between items-center mb-6">
-        <PageTitle
-          title="Cursos"
-          subtitle="Gestión de cursos registrados"
-        />
+        <PageTitle title="Cursos" subtitle="Gestión de cursos registrados" />
 
-        <PrimaryButton onClick={handleCreate}>
-          Nuevo Curso
-        </PrimaryButton>
+        <PrimaryButton onClick={handleCreate}>Nuevo Curso</PrimaryButton>
       </div>
 
       <input
@@ -133,11 +125,17 @@ function Courses() {
         "
       />
 
-      <CourseTable
-        courses={filteredCourses}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-      />
+      {isLoading ? (
+        <p className="text-slate-500">Cargando cursos...</p>
+      ) : filteredCourses.length === 0 ? (
+        <EmptyState message="No hay cursos registrados." />
+      ) : (
+        <CourseTable
+          courses={filteredCourses}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
+      )}
 
       <CourseForm
         isOpen={isModalOpen}
@@ -159,6 +157,20 @@ function Courses() {
         }
         onCancel={() => setCourseToDelete(null)}
         onConfirm={confirmDelete}
+      />
+
+      <ConfirmDialog
+        isOpen={!!courseToSave}
+        title={selectedCourse ? "Guardar cambios" : "Crear curso"}
+        message={
+          courseToSave
+            ? selectedCourse
+              ? `¿Desea guardar los cambios del curso ${courseToSave.name}?`
+              : `¿Desea crear el curso ${courseToSave.name}?`
+            : ""
+        }
+        onCancel={() => setCourseToSave(null)}
+        onConfirm={confirmSave}
       />
     </MainLayout>
   );

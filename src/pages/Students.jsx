@@ -2,12 +2,13 @@ import { useEffect, useState } from "react";
 
 import MainLayout from "../layouts/MainLayout";
 
-import PageTitle from "../components/PageTitle";
-import PrimaryButton from "../components/PrimaryButton";
-import StudentTable from "../components/StudentTable";
+import PageTitle from "../components/ui/PageTitle";
+import PrimaryButton from "../components/ui/PrimaryButton";
+import EmptyState from "../components/ui/EmptyState";
+import StudentTable from "../components/tables/StudentTable";
 
-import StudentForm from "../components/StudentForm";
-import ConfirmDialog from "../components/ConfirmDialog";
+import StudentForm from "../components/forms/StudentForm";
+import ConfirmDialog from "../components/ui/ConfirmDialog";
 
 import {
   getStudents,
@@ -16,41 +17,36 @@ import {
   deleteStudent,
 } from "../services/studentService";
 
-
-
 function Students() {
   const [students, setStudents] = useState([]);
   const [search, setSearch] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [studentToDelete, setStudentToDelete] = useState(null);
+  const [studentToSave, setStudentToSave] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     loadStudents();
   }, []);
 
   async function loadStudents() {
-    const data = await getStudents();
-    setStudents(data);
+    try {
+      const data = await getStudents();
+      setStudents(data);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   const filteredStudents = students.filter(
     (student) =>
-      student.first_name
-        .toLowerCase()
-        .includes(search.toLowerCase()) ||
-
-      student.last_name
-        .toLowerCase()
-        .includes(search.toLowerCase()) ||
-
-      student.email
-        .toLowerCase()
-        .includes(search.toLowerCase()) ||
-
-      student.phone
-        .toLowerCase()
-        .includes(search.toLowerCase())
+      student.first_name.toLowerCase().includes(search.toLowerCase()) ||
+      student.last_name.toLowerCase().includes(search.toLowerCase()) ||
+      student.email.toLowerCase().includes(search.toLowerCase()) ||
+      student.phone.toLowerCase().includes(search.toLowerCase()),
   );
 
   function handleCreate() {
@@ -58,33 +54,31 @@ function Students() {
     setIsModalOpen(true);
   }
 
-
   function handleEdit(student) {
     setSelectedStudent(student);
     setIsModalOpen(true);
   }
 
   async function handleSave(studentData) {
-    try {
+    setStudentToSave(studentData);
+  }
 
+  async function confirmSave() {
+    try {
       if (selectedStudent) {
-        await updateStudent(
-          selectedStudent.id,
-          studentData
-        );
+        await updateStudent(selectedStudent.id, studentToSave);
       } else {
-        await createStudent(studentData);
+        await createStudent(studentToSave);
       }
 
       await loadStudents();
 
+      setStudentToSave(null);
       setIsModalOpen(false);
-
     } catch (error) {
       console.error(error);
     }
   }
-
 
   function handleDelete(student) {
     setStudentToDelete(student);
@@ -92,14 +86,11 @@ function Students() {
 
   async function confirmDelete() {
     try {
-      await deleteStudent(
-        studentToDelete.id
-      );
+      await deleteStudent(studentToDelete.id);
 
       await loadStudents();
 
       setStudentToDelete(null);
-
     } catch (error) {
       console.error(error);
     }
@@ -107,20 +98,13 @@ function Students() {
 
   return (
     <MainLayout>
-
       <div className="flex justify-between items-center mb-6">
-
         <PageTitle
           title="Estudiantes"
           subtitle="Gestión de estudiantes registrados"
         />
 
-        <PrimaryButton
-          onClick={handleCreate}
-        >
-          Nuevo Estudiante
-        </PrimaryButton>
-
+        <PrimaryButton children="Nuevo Estudiante" onClick={handleCreate} />
       </div>
 
       <input
@@ -138,18 +122,22 @@ function Students() {
         "
       />
 
-      <StudentTable
-        students={filteredStudents}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-      />
+      {isLoading ? (
+        <p className="text-slate-500">Cargando estudiantes...</p>
+      ) : filteredStudents.length === 0 ? (
+        <EmptyState message="No hay estudiantes registrados." />
+      ) : (
+        <StudentTable
+          students={filteredStudents}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
+      )}
 
       <StudentForm
         isOpen={isModalOpen}
         student={selectedStudent}
-        onClose={() =>
-          setIsModalOpen(false)
-        }
+        onClose={() => setIsModalOpen(false)}
         onSave={handleSave}
       />
 
@@ -161,15 +149,24 @@ function Students() {
             ? `¿Desea eliminar a ${studentToDelete.first_name} ${studentToDelete.last_name}?`
             : ""
         }
-        onCancel={() =>
-          setStudentToDelete(null)
-        }
+        onCancel={() => setStudentToDelete(null)}
         onConfirm={confirmDelete}
       />
 
+      <ConfirmDialog
+        isOpen={!!studentToSave}
+        title={selectedStudent ? "Guardar cambios" : "Crear estudiante"}
+        message={
+          studentToSave
+            ? selectedStudent
+              ? `¿Desea guardar los cambios de ${studentToSave.first_name} ${studentToSave.last_name}?`
+              : `¿Desea crear al estudiante ${studentToSave.first_name} ${studentToSave.last_name}?`
+            : ""
+        }
+        onCancel={() => setStudentToSave(null)}
+        onConfirm={confirmSave}
+      />
     </MainLayout>
-
-
   );
 }
 

@@ -1,13 +1,8 @@
 import { useEffect, useState } from "react";
 
-import PrimaryButton from "./PrimaryButton";
+import PrimaryButton from "../ui/PrimaryButton";
 
-function StudentForm({
-  isOpen,
-  student,
-  onClose,
-  onSave,
-}) {
+function StudentForm({ isOpen, student, onClose, onSave }) {
   const [formData, setFormData] = useState({
     first_name: "",
     last_name: "",
@@ -30,14 +25,14 @@ function StudentForm({
 
   if (!isOpen) return null;
 
-function handleChange(event) {
-  const { name, value } = event.target;
+  function handleChange(event) {
+    const { name, value } = event.target;
 
-  setFormData((prev) => ({
-    ...prev,
-    [name]: value,
-  }));
-}
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  }
 
   function handleSubmit(event) {
     event.preventDefault();
@@ -47,18 +42,11 @@ function handleChange(event) {
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
       <div className="bg-white rounded-xl w-full max-w-lg p-6">
-
         <h2 className="text-2xl font-bold mb-6">
-          {student
-            ? "Editar Estudiante"
-            : "Nuevo Estudiante"}
+          {student ? "Editar Estudiante" : "Nuevo Estudiante"}
         </h2>
 
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-4"
-        >
-
+        <form onSubmit={handleSubmit} className="space-y-4">
           <input
             type="text"
             name="first_name"
@@ -100,7 +88,6 @@ function handleChange(event) {
           />
 
           <div className="flex justify-end gap-3 pt-4">
-
             <button
               type="button"
               onClick={onClose}
@@ -114,14 +101,9 @@ function handleChange(event) {
               Cancelar
             </button>
 
-            <PrimaryButton type="submit">
-              Guardar
-            </PrimaryButton>
-
+            <PrimaryButton type="submit">Guardar</PrimaryButton>
           </div>
-
         </form>
-
       </div>
     </div>
   );

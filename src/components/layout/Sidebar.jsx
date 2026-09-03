@@ -1,10 +1,10 @@
 import { NavLink } from "react-router-dom";
 
-import { GraduationCapIcon } from "./icons/GraduationCapIcon";
+import { GraduationCapIcon } from "../icons/GraduationCapIcon";
 
 function Sidebar() {
   return (
-    <aside className="w-72 bg-slate-900 text-white min-h-screen shadow-xl">
+    <aside className="w-72 bg-slate-900 text-white min-h-screen shadow-xl flex flex-col">
       <div className="flex items-center gap-3 p-6">
         <GraduationCapIcon className="h-9 w-9 shrink-0 text-sky-400" />
         <h1 className="text-lg font-bold leading-snug">
@@ -12,16 +12,14 @@ function Sidebar() {
         </h1>
       </div>
 
-      <nav className="px-4">
+      <nav className="px-4 flex-1">
         <ul className="space-y-1">
-
           <li>
             <NavLink
               to="/"
               className={({ isActive }) =>
-                `block p-3 rounded transition ${isActive
-                  ? "bg-blue-600 text-white"
-                  : "hover:bg-slate-700"
+                `block p-3 rounded transition ${
+                  isActive ? "bg-blue-600 text-white" : "hover:bg-slate-700"
                 }`
               }
             >
@@ -33,9 +31,8 @@ function Sidebar() {
             <NavLink
               to="/students"
               className={({ isActive }) =>
-                `block p-3 rounded transition ${isActive
-                  ? "bg-blue-600 text-white"
-                  : "hover:bg-slate-700"
+                `block p-3 rounded transition ${
+                  isActive ? "bg-blue-600 text-white" : "hover:bg-slate-700"
                 }`
               }
             >
@@ -43,14 +40,12 @@ function Sidebar() {
             </NavLink>
           </li>
 
-
           <li>
             <NavLink
               to="/courses"
               className={({ isActive }) =>
-                `block p-3 rounded transition ${isActive
-                  ? "bg-blue-600 text-white"
-                  : "hover:bg-slate-700"
+                `block p-3 rounded transition ${
+                  isActive ? "bg-blue-600 text-white" : "hover:bg-slate-700"
                 }`
               }
             >
@@ -62,18 +57,20 @@ function Sidebar() {
             <NavLink
               to="/enrollments"
               className={({ isActive }) =>
-                `block p-3 rounded transition ${isActive
-                  ? "bg-blue-600 text-white"
-                  : "hover:bg-slate-700"
+                `block p-3 rounded transition ${
+                  isActive ? "bg-blue-600 text-white" : "hover:bg-slate-700"
                 }`
               }
             >
               Matrículas
             </NavLink>
           </li>
-
         </ul>
       </nav>
+      <footer className="p-4 text-sm text-slate-400">
+        <p>Admin</p>
+        <p>lgoenaga@cede.net</p>
+      </footer>
     </aside>
   );
 }

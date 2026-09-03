@@ -1,12 +1,7 @@
 import { useEffect, useState } from "react";
-import PrimaryButton from "./PrimaryButton";
+import PrimaryButton from "../ui/PrimaryButton";
 
-function CourseForm({
-  isOpen,
-  course,
-  onClose,
-  onSave,
-}) {
+function CourseForm({ isOpen, course, onClose, onSave }) {
   const [formData, setFormData] = useState({
     code: "",
     name: "",
@@ -42,27 +37,18 @@ function CourseForm({
 
     onSave({
       ...formData,
-      max_capacity: Number(
-        formData.max_capacity
-      ),
+      max_capacity: Number(formData.max_capacity),
     });
   }
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
       <div className="bg-white rounded-xl w-full max-w-lg p-6">
-
         <h2 className="text-2xl font-bold mb-6">
-          {course
-            ? "Editar Curso"
-            : "Nuevo Curso"}
+          {course ? "Editar Curso" : "Nuevo Curso"}
         </h2>
 
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-4"
-        >
-
+        <form onSubmit={handleSubmit} className="space-y-4">
           <input
             type="text"
             name="code"
@@ -104,7 +90,6 @@ function CourseForm({
           />
 
           <div className="flex justify-end gap-3">
-
             <button
               type="button"
               onClick={onClose}
@@ -113,14 +98,9 @@ function CourseForm({
               Cancelar
             </button>
 
-            <PrimaryButton type="submit">
-              Guardar
-            </PrimaryButton>
-
+            <PrimaryButton type="submit">Guardar</PrimaryButton>
           </div>
-
         </form>
-
       </div>
     </div>
   );

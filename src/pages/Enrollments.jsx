@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 
 import MainLayout from "../layouts/MainLayout";
-import PageTitle from "../components/PageTitle";
-import PrimaryButton from "../components/PrimaryButton";
-import EnrollmentTable from "../components/EnrollmentTable";
-import EnrollmentForm from "../components/EnrollmentForm";
-import ConfirmDialog from "../components/ConfirmDialog";
+import PageTitle from "../components/ui/PageTitle";
+import PrimaryButton from "../components/ui/PrimaryButton";
+import EmptyState from "../components/ui/EmptyState";
+import EnrollmentTable from "../components/tables/EnrollmentTable";
+import EnrollmentForm from "../components/forms/EnrollmentForm";
+import ConfirmDialog from "../components/ui/ConfirmDialog";
 
 import {
   getEnrollments,
@@ -19,57 +20,40 @@ import {
 } from "../services/enrollmentService";
 
 function Enrollments() {
+  const [enrollments, setEnrollments] = useState([]);
 
-  const [enrollments, setEnrollments] =
-    useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const [isModalOpen, setIsModalOpen] =
-    useState(false);
+  const [students, setStudents] = useState([]);
 
-  const [students, setStudents] =
-    useState([]);
-
-  const [courses, setCourses] =
-    useState([]);
+  const [courses, setCourses] = useState([]);
 
   const [search, setSearch] = useState("");
 
-  const [statusFilter, setStatusFilter] =
-    useState("ALL");
+  const [statusFilter, setStatusFilter] = useState("ALL");
 
-  const [selectedEnrollment, setSelectedEnrollment] =
-    useState(null);
+  const [selectedEnrollment, setSelectedEnrollment] = useState(null);
 
-  const [enrollmentToDelete, setEnrollmentToDelete] =
-    useState(null);
+  const [enrollmentToDelete, setEnrollmentToDelete] = useState(null);
 
-  const filteredEnrollments =
-    enrollments.filter((enrollment) => {
+  const [enrollmentToSave, setEnrollmentToSave] = useState(null);
 
-      const student =
-        `${enrollment.students?.first_name} ${enrollment.students?.last_name}`;
+  const [isLoading, setIsLoading] = useState(true);
 
-      const course =
-        enrollment.courses?.name || "";
+  const filteredEnrollments = enrollments.filter((enrollment) => {
+    const student = `${enrollment.students?.first_name} ${enrollment.students?.last_name}`;
 
-      const matchSearch =
-        student
-          .toLowerCase()
-          .includes(search.toLowerCase()) ||
+    const course = enrollment.courses?.name || "";
 
-        course
-          .toLowerCase()
-          .includes(search.toLowerCase());
+    const matchSearch =
+      student.toLowerCase().includes(search.toLowerCase()) ||
+      course.toLowerCase().includes(search.toLowerCase());
 
-      const matchStatus =
-        statusFilter === "ALL" ||
-        enrollment.status === statusFilter;
+    const matchStatus =
+      statusFilter === "ALL" || enrollment.status === statusFilter;
 
-      return (
-        matchSearch &&
-        matchStatus
-      );
-    });
+    return matchSearch && matchStatus;
+  });
 
   useEffect(() => {
     loadEnrollments();
@@ -77,72 +61,67 @@ function Enrollments() {
   }, []);
 
   async function loadEnrollments() {
-    const data =
-      await getEnrollments();
+    try {
+      const data = await getEnrollments();
 
-    setEnrollments(data);
+      setEnrollments(data);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   async function loadOptions() {
-    const studentsData =
-      await getStudentOptions();
+    const studentsData = await getStudentOptions();
 
-    const coursesData =
-      await getCourseOptions();
+    const coursesData = await getCourseOptions();
 
     setStudents(studentsData);
     setCourses(coursesData);
   }
 
   async function handleSave(formData) {
-    try {
+    setEnrollmentToSave(formData);
+  }
 
-      const duplicated =
-        await getEnrollmentByStudentAndCourse(
-          formData.student_id,
-          formData.course_id
-        );
+  async function confirmSave() {
+    try {
+      const duplicated = await getEnrollmentByStudentAndCourse(
+        enrollmentToSave.student_id,
+        enrollmentToSave.course_id,
+      );
 
       if (duplicated.length > 0) {
-        alert(
-          "El estudiante ya se encuentra matriculado en este curso."
-        );
+        alert("El estudiante ya se encuentra matriculado en este curso.");
+        setEnrollmentToSave(null);
         return;
       }
 
-      const selectedCourse =
-        courses.find(
-          (course) =>
-            course.id === formData.course_id
-        );
+      const selectedCourse = courses.find(
+        (course) => course.id === enrollmentToSave.course_id,
+      );
 
-      const currentEnrollments =
-        await getCourseEnrollmentCount(
-          formData.course_id
-        );
+      const currentEnrollments = await getCourseEnrollmentCount(
+        enrollmentToSave.course_id,
+      );
 
-      if (
-        currentEnrollments >=
-        selectedCourse.max_capacity
-      ) {
-        alert(
-          "El curso ha alcanzado su capacidad máxima."
-        );
+      if (currentEnrollments >= selectedCourse.max_capacity) {
+        alert("El curso ha alcanzado su capacidad máxima.");
+        setEnrollmentToSave(null);
         return;
       }
 
-      await createEnrollment(formData);
+      await createEnrollment(enrollmentToSave);
 
       await loadEnrollments();
 
+      setEnrollmentToSave(null);
       setIsModalOpen(false);
-
     } catch (error) {
       console.error(error);
 
-      alert(
-        "Ocurrió un error al registrar la matrícula."
-      );
+      alert("Ocurrió un error al registrar la matrícula.");
     }
   }
 
@@ -156,15 +135,11 @@ function Enrollments() {
 
   async function confirmDelete() {
     try {
-
-      await deleteEnrollment(
-        enrollmentToDelete.id
-      );
+      await deleteEnrollment(enrollmentToDelete.id);
 
       await loadEnrollments();
 
       setEnrollmentToDelete(null);
-
     } catch (error) {
       console.error(error);
     }
@@ -172,19 +147,14 @@ function Enrollments() {
 
   return (
     <MainLayout>
-
       <div className="flex justify-between items-center mb-6">
-
         <PageTitle
           title="Matrículas"
           subtitle="Gestión de matrículas registradas"
         />
-        <PrimaryButton
-          onClick={() => setIsModalOpen(true)}
-        >
+        <PrimaryButton onClick={() => setIsModalOpen(true)}>
           Nueva Matrícula
         </PrimaryButton>
-
       </div>
       <div className="flex gap-4">
         <input
@@ -203,9 +173,7 @@ function Enrollments() {
         />
         <select
           value={statusFilter}
-          onChange={(e) =>
-            setStatusFilter(e.target.value)
-          }
+          onChange={(e) => setStatusFilter(e.target.value)}
           className="
           bg-white
           border
@@ -214,108 +182,90 @@ function Enrollments() {
           mb-6
         "
         >
-          <option value="ALL">
-            Todos los estados
-          </option>
+          <option value="ALL">Todos los estados</option>
 
-          <option value="ACTIVE">
-            Active
-          </option>
+          <option value="ACTIVE">Active</option>
 
-          <option value="COMPLETED">
-            Completed
-          </option>
+          <option value="COMPLETED">Completed</option>
 
-          <option value="CANCELLED">
-            Cancelled
-          </option>
+          <option value="CANCELLED">Cancelled</option>
         </select>
-
-
       </div>
-      <EnrollmentTable
-        enrollments={filteredEnrollments}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-      />
+      {isLoading ? (
+        <p className="text-slate-500">Cargando matrículas...</p>
+      ) : filteredEnrollments.length === 0 ? (
+        <EmptyState message="No hay matrículas registradas." />
+      ) : (
+        <EnrollmentTable
+          enrollments={filteredEnrollments}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
+      )}
 
       <EnrollmentForm
         isOpen={isModalOpen}
         students={students}
         courses={courses}
-        onClose={() =>
-          setIsModalOpen(false)
-        }
+        onClose={() => setIsModalOpen(false)}
         onSave={handleSave}
       />
 
-      {
-        selectedEnrollment && (
-          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+      {selectedEnrollment && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4">Cambiar Estado</h2>
 
-            <div className="bg-white rounded-xl p-6 w-full max-w-md">
+            <select
+              className="w-full border rounded-lg p-3 mb-4"
+              defaultValue={selectedEnrollment.status}
+              onChange={(e) =>
+                setSelectedEnrollment({
+                  ...selectedEnrollment,
+                  status: e.target.value,
+                })
+              }
+            >
+              <option value="ACTIVE">ACTIVE</option>
 
-              <h2 className="text-xl font-bold mb-4">
-                Cambiar Estado
-              </h2>
+              <option value="COMPLETED">COMPLETED</option>
 
-              <select
-                className="w-full border rounded-lg p-3 mb-4"
-                defaultValue={selectedEnrollment.status}
-                onChange={(e) =>
-                  setSelectedEnrollment({
-                    ...selectedEnrollment,
-                    status: e.target.value,
-                  })
-                }
+              <option value="CANCELLED">CANCELLED</option>
+            </select>
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setSelectedEnrollment(null)}
+                className="px-4 py-2 border rounded-lg"
               >
-                <option value="ACTIVE">
-                  ACTIVE
-                </option>
+                Cancelar
+              </button>
 
-                <option value="COMPLETED">
-                  COMPLETED
-                </option>
-
-                <option value="CANCELLED">
-                  CANCELLED
-                </option>
-              </select>
-
-              <div className="flex justify-end gap-3">
-
-                <button
-                  onClick={() =>
-                    setSelectedEnrollment(null)
-                  }
-                  className="px-4 py-2 border rounded-lg"
-                >
-                  Cancelar
-                </button>
-
-                <PrimaryButton
-                  onClick={async () => {
-
+              <PrimaryButton
+                onClick={async () => {
+                  try {
                     await updateEnrollmentStatus(
                       selectedEnrollment.id,
-                      selectedEnrollment.status
+                      selectedEnrollment.status,
                     );
 
                     await loadEnrollments();
 
                     setSelectedEnrollment(null);
-                  }}
-                >
-                  Guardar
-                </PrimaryButton>
-
-              </div>
-
+                  } catch (error) {
+                    console.error(error);
+                    alert(
+                      "Ocurrió un error al actualizar el estado de la matrícula.",
+                    );
+                  }
+                }}
+              >
+                Guardar
+              </PrimaryButton>
             </div>
-
           </div>
-        )
-      }
+        </div>
+      )}
 
       <ConfirmDialog
         isOpen={!!enrollmentToDelete}
@@ -325,12 +275,17 @@ function Enrollments() {
             ? `¿Desea eliminar la matrícula de ${enrollmentToDelete.students?.first_name} ${enrollmentToDelete.students?.last_name}?`
             : ""
         }
-        onCancel={() =>
-          setEnrollmentToDelete(null)
-        }
+        onCancel={() => setEnrollmentToDelete(null)}
         onConfirm={confirmDelete}
       />
 
+      <ConfirmDialog
+        isOpen={!!enrollmentToSave}
+        title="Crear matrícula"
+        message="¿Desea registrar esta matrícula?"
+        onCancel={() => setEnrollmentToSave(null)}
+        onConfirm={confirmSave}
+      />
     </MainLayout>
   );
 }
