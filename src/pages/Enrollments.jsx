@@ -38,6 +38,8 @@ function Enrollments() {
 
   const [enrollmentToSave, setEnrollmentToSave] = useState(null);
 
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+
   const [isLoading, setIsLoading] = useState(true);
 
   const filteredEnrollments = enrollments.filter((enrollment) => {
@@ -129,6 +131,15 @@ function Enrollments() {
     setSelectedEnrollment(enrollment);
   }
 
+  function handleCancelForm() {
+    setShowCancelConfirm(true);
+  }
+
+  function confirmCancelForm() {
+    setShowCancelConfirm(false);
+    setIsModalOpen(false);
+  }
+
   function handleDelete(enrollment) {
     setEnrollmentToDelete(enrollment);
   }
@@ -207,7 +218,7 @@ function Enrollments() {
         isOpen={isModalOpen}
         students={students}
         courses={courses}
-        onClose={() => setIsModalOpen(false)}
+        onClose={handleCancelForm}
         onSave={handleSave}
       />
 
@@ -283,8 +294,20 @@ function Enrollments() {
         isOpen={!!enrollmentToSave}
         title="Crear matrícula"
         message="¿Desea registrar esta matrícula?"
+        confirmLabel="Crear"
+        confirmColor="blue"
         onCancel={() => setEnrollmentToSave(null)}
         onConfirm={confirmSave}
+      />
+
+      <ConfirmDialog
+        isOpen={showCancelConfirm}
+        title="Cancelar"
+        message="¿Desea cancelar? Los cambios no guardados se perderán."
+        confirmLabel="Sí, cancelar"
+        confirmColor="red"
+        onCancel={() => setShowCancelConfirm(false)}
+        onConfirm={confirmCancelForm}
       />
     </MainLayout>
   );

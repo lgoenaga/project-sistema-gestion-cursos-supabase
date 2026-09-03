@@ -24,6 +24,7 @@ function Students() {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [studentToDelete, setStudentToDelete] = useState(null);
   const [studentToSave, setStudentToSave] = useState(null);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -78,6 +79,16 @@ function Students() {
     } catch (error) {
       console.error(error);
     }
+  }
+
+  function handleCancelForm() {
+    setShowCancelConfirm(true);
+  }
+
+  function confirmCancelForm() {
+    setShowCancelConfirm(false);
+    setIsModalOpen(false);
+    setSelectedStudent(null);
   }
 
   function handleDelete(student) {
@@ -137,7 +148,7 @@ function Students() {
       <StudentForm
         isOpen={isModalOpen}
         student={selectedStudent}
-        onClose={() => setIsModalOpen(false)}
+        onClose={handleCancelForm}
         onSave={handleSave}
       />
 
@@ -163,8 +174,20 @@ function Students() {
               : `¿Desea crear al estudiante ${studentToSave.first_name} ${studentToSave.last_name}?`
             : ""
         }
+        confirmLabel={selectedStudent ? "Guardar" : "Crear"}
+        confirmColor="blue"
         onCancel={() => setStudentToSave(null)}
         onConfirm={confirmSave}
+      />
+
+      <ConfirmDialog
+        isOpen={showCancelConfirm}
+        title="Cancelar"
+        message="¿Desea cancelar? Los cambios no guardados se perderán."
+        confirmLabel="Sí, cancelar"
+        confirmColor="red"
+        onCancel={() => setShowCancelConfirm(false)}
+        onConfirm={confirmCancelForm}
       />
     </MainLayout>
   );

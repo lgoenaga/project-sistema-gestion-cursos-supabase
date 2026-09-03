@@ -25,6 +25,7 @@ function Courses() {
 
   const [courseToDelete, setCourseToDelete] = useState(null);
   const [courseToSave, setCourseToSave] = useState(null);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -54,6 +55,16 @@ function Courses() {
 
   function handleSave(courseData) {
     setCourseToSave(courseData);
+  }
+
+  function handleCancelForm() {
+    setShowCancelConfirm(true);
+  }
+
+  function confirmCancelForm() {
+    setShowCancelConfirm(false);
+    setIsModalOpen(false);
+    setSelectedCourse(null);
   }
 
   async function confirmSave() {
@@ -140,10 +151,7 @@ function Courses() {
       <CourseForm
         isOpen={isModalOpen}
         course={selectedCourse}
-        onClose={() => {
-          setIsModalOpen(false);
-          setSelectedCourse(null);
-        }}
+        onClose={handleCancelForm}
         onSave={handleSave}
       />
 
@@ -169,8 +177,20 @@ function Courses() {
               : `¿Desea crear el curso ${courseToSave.name}?`
             : ""
         }
+        confirmLabel={selectedCourse ? "Guardar" : "Crear"}
+        confirmColor="blue"
         onCancel={() => setCourseToSave(null)}
         onConfirm={confirmSave}
+      />
+
+      <ConfirmDialog
+        isOpen={showCancelConfirm}
+        title="Cancelar"
+        message="¿Desea cancelar? Los cambios no guardados se perderán."
+        confirmLabel="Sí, cancelar"
+        confirmColor="red"
+        onCancel={() => setShowCancelConfirm(false)}
+        onConfirm={confirmCancelForm}
       />
     </MainLayout>
   );
